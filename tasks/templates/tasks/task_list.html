@@ -1,0 +1,93 @@
+{% load static %}
+
+<html>
+
+<head>
+    <title>Task Manager</title>
+    <link rel="stylesheet" type="text/css" href="{% static 'tasks/style.css' %}">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+</head>
+
+<body>
+    <h1>Task List</h1>
+
+    <!-- Success or error messages -->
+    {% if messages %}
+    <div class="messages">
+        {% for message in messages %}
+        <div class="message {{ message.tags }}">{{ message }}</div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- Search Form -->
+    <form method="get" action="{% url 'task_list' %}">
+        <input type="text" name="q" placeholder="Search tasks..." value="{{ request.GET.q }}">
+        <button type="submit" class="btn">
+            <i class="fas fa-search"></i> Search
+        </button>
+
+        <!-- Sort Buttons -->
+        <a href="?sort=high" class="btn">Sort High ➡️ Low</a>
+        <a href="?sort=low" class="btn">Sort Low ➡️ High</a>
+    </form>
+
+    <br><br>
+
+    <!-- Add New Task Button -->
+    <a href="{% url 'task_create' %}">
+        <button class="btn">Add New Task</button>
+    </a>
+    <div class="pagination">
+        {% if page_obj.has_previous %}
+        <a
+            href="?page=1{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}{% if request.GET.sort %}&sort={{ request.GET.sort }}{% endif %}">First</a>
+        <a
+            href="?page={{ page_obj.previous_page_number }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}{% if request.GET.sort %}&sort={{ request.GET.sort }}{% endif %}">Previous</a>
+        {% endif %}
+
+        <span>Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
+
+        {% if page_obj.has_next %}
+        <a
+            href="?page={{ page_obj.next_page_number }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}{% if request.GET.sort %}&sort={{ request.GET.sort }}{% endif %}">Next</a>
+        <a
+            href="?page={{ page_obj.paginator.num_pages }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}{% if request.GET.sort %}&sort={{ request.GET.sort }}{% endif %}">Last</a>
+        {% endif %}
+    </div>
+
+    <ul>
+        {% for task in page_obj %}
+        <li>
+            <strong>{{ task.title }}</strong> |
+            Start: {{ task.start_date }} |
+            Due: {{ task.due_date }} |
+            Priority: {{ task.priority }} |
+            Category: {{ task.category }} |
+
+            Status:
+            {% if task.completed %}
+            ✅ Completed
+            {% else %}
+            {% if task.due_date < today %} <span style="color: red; font-weight: bold;">⚠️ Overdue!</span>
+                {% else %}
+                ❌ In Progress
+                {% endif %}
+                <a href="{% url 'task_complete' task.id %}" style="color: green; font-weight: bold;">[ Mark as Completed
+                    ✅ ]</a>
+                {% endif %}
+
+                | <a href="{% url 'task_update' task.id %}">Edit</a>
+                | <a href="{% url 'task_delete' task.id %}">Delete</a>
+        </li>
+        {% empty %}
+        <li>No tasks found.</li>
+        {% endfor %}
+    </ul>
+
+
+
+
+</body>
+
+</html>
